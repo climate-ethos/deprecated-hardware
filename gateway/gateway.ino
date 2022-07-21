@@ -48,20 +48,35 @@ void loop()
     // Should be a message for us now
     uint8_t buf[RH_RF95_MAX_MESSAGE_LEN];
     uint8_t len = sizeof(buf);
-    if (rf95.recv(buf, &len))
-    {
-      digitalWrite(led, HIGH);
-      RH_RF95::printBuffer("request: ", buf, len);
-      Console.print("got request: ");
-      Console.println((char*)buf);
-      Console.print("RSSI: ");
-      Console.println(rf95.lastRssi(), DEC);
-      digitalWrite(led, LOW);
-    }
-    else
-    {
-      Console.println("recv failed");
-    }
+    // For Testing {{{
+    buf[0] = 1;
+    buf[1] = 3;
+    buf[2] = 3;
+    buf[3] = 7;
+    len = 4;
+    digitalWrite(led, HIGH);
+    RH_RF95::printBuffer("request: ", buf, len);
+    Console.print("got request: ");
+    Console.println((char*)buf);
+    Console.print("RSSI: ");
+    Console.println(rf95.lastRssi(), DEC);
+    digitalWrite(led, LOW);
+    // Send data to MPU
+    Bridge.transfer(buf, len);
+    // }}}
+    // if (rf95.recv(buf, &len))
+    // {
+    //   digitalWrite(led, HIGH);
+    //   RH_RF95::printBuffer("request: ", buf, len);
+    //   Console.print("got request: ");
+    //   Console.println((char*)buf);
+    //   Console.print("RSSI: ");
+    //   Console.println(rf95.lastRssi(), DEC);
+    //   digitalWrite(led, LOW);
+    // }
+    // else
+    // {
+    //   Console.println("recv failed");
+    // }
   }
 }
-
