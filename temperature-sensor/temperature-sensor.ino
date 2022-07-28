@@ -6,6 +6,8 @@
 #include <LowPower.h>
 #include <DHT.h>
 
+#include <RH_RF69.h>
+
 // DHT 22
 #define DHT_PWD_PIN A2 // We power the DHT22 via a MCU GPIO so we can control when it's up or not
 #define DHT_DATA_PIN A1
