@@ -17,11 +17,12 @@ DHT dht(DHT_DATA_PIN, DHT_TYPE);
 // SPI Flash
 T2Flash myFlash;
 
-// RFM69 Radio
+// RFM95 Radio
+RH_RF95 myRadio;
 #define RADIO_FREQUENCY 915.2 // Using the first (0) AU915 band
 #define RADIO_TX_POWER 13
 #define RADIO_ENCRYPTION_KEY { 0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0A, 0x0B, 0x0C, 0x0D, 0x0E, 0x0F }
-RH_RF95 myRadio;
+#define RADIO_CONFIG = RH_RF95::Bw125Cr45Sf128; // Set Bw = 125 kHz, Cr = 4/5, Sf = 128chips/symbol, CRC on. Default medium range.
 uint8_t radioBuf[(T2_MESSAGE_HEADERS_LEN + T2_MESSAGE_MAX_DATA_LEN)];
 
 // T2 Message
@@ -38,8 +39,7 @@ void setup()
   Serial.println(F("Putting Radio and SPI Flash to Sleep"));
   // Radio - Initialize the radio and put it to sleep to save energy
   myRadio.init();
-  // Set Bw = 125 kHz, Cr = 4/5, Sf = 128chips/symbol, CRC on. Default medium range.
-  myRadio.setModemConfig(RH_RF95::Bw125Cr45Sf128);
+  myRadio.setModemConfig(RADIO_CONFIG);
   myRadio.setFrequency(RADIO_FREQUENCY);
   uint8_t myRadioEncryptionKey[] = RADIO_ENCRYPTION_KEY;
   myRadio.setEncryptionKey(myRadioEncryptionKey);
