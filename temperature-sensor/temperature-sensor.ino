@@ -38,7 +38,8 @@ void setup()
   Serial.println(F("Putting Radio and SPI Flash to Sleep"));
   // Radio - Initialize the radio and put it to sleep to save energy
   myRadio.init();
-  myRadio.setModemConfig(RH_RF95::FSK_Rb250Fd250);
+  // Set Bw = 125 kHz, Cr = 4/5, Sf = 128chips/symbol, CRC on. Default medium range.
+  myRadio.setModemConfig(RH_RF95::Bw125Cr45Sf128);
   myRadio.setFrequency(RADIO_FREQUENCY);
   uint8_t myRadioEncryptionKey[] = RADIO_ENCRYPTION_KEY;
   myRadio.setEncryptionKey(myRadioEncryptionKey);
