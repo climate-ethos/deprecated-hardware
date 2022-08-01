@@ -38,7 +38,9 @@ void setup()
 
   Serial.println(F("Putting Radio and SPI Flash to Sleep"));
   // Radio - Initialize the radio and put it to sleep to save energy
-  myRadio.init();
+  if(!myRadio.init()) {
+    Console.println("init failed");
+  }
   myRadio.setModemConfig(RADIO_CONFIG);
   myRadio.setFrequency(RADIO_FREQUENCY);
   uint8_t myRadioEncryptionKey[] = RADIO_ENCRYPTION_KEY;
