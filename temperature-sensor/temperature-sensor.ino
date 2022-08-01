@@ -6,7 +6,7 @@
 #include <LowPower.h>
 #include <DHT.h>
 
-#include <RH_RF69.h>
+#include <RH_RF95.h>
 
 // DHT 22
 #define DHT_PWD_PIN A2 // We power the DHT22 via a MCU GPIO so we can control when it's up or not
@@ -21,7 +21,7 @@ T2Flash myFlash;
 #define RADIO_FREQUENCY 915.2 // Using the first (0) AU915 band
 #define RADIO_TX_POWER 13
 #define RADIO_ENCRYPTION_KEY { 0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0A, 0x0B, 0x0C, 0x0D, 0x0E, 0x0F }
-RH_RF69 myRadio;
+RH_RF95 myRadio;
 uint8_t radioBuf[(T2_MESSAGE_HEADERS_LEN + T2_MESSAGE_MAX_DATA_LEN)];
 
 // T2 Message
@@ -38,7 +38,7 @@ void setup()
   Serial.println(F("Putting Radio and SPI Flash to Sleep"));
   // Radio - Initialize the radio and put it to sleep to save energy
   myRadio.init();
-  myRadio.setModemConfig(RH_RF69::FSK_Rb250Fd250);
+  myRadio.setModemConfig(RH_RF95::FSK_Rb250Fd250);
   myRadio.setFrequency(RADIO_FREQUENCY);
   uint8_t myRadioEncryptionKey[] = RADIO_ENCRYPTION_KEY;
   myRadio.setEncryptionKey(myRadioEncryptionKey);
