@@ -21,8 +21,8 @@ T2Flash myFlash;
 RH_RF95 myRadio;
 #define RADIO_FREQUENCY 915.2 // Using the first (0) AU915 band
 #define RADIO_TX_POWER 13
-#define RADIO_ENCRYPTION_KEY { 0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0A, 0x0B, 0x0C, 0x0D, 0x0E, 0x0F }
-#define RADIO_CONFIG = RH_RF95::Bw125Cr45Sf128; // Set Bw = 125 kHz, Cr = 4/5, Sf = 128chips/symbol, CRC on. Default medium range.
+// #define RADIO_ENCRYPTION_KEY { 0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0A, 0x0B, 0x0C, 0x0D, 0x0E, 0x0F }
+#define RADIO_CONFIG RH_RF95::Bw125Cr45Sf128 // Set Bw = 125 kHz, Cr = 4/5, Sf = 128chips/symbol, CRC on. Default medium range.
 uint8_t radioBuf[(T2_MESSAGE_HEADERS_LEN + T2_MESSAGE_MAX_DATA_LEN)];
 
 // T2 Message
@@ -39,12 +39,12 @@ void setup()
   Serial.println(F("Putting Radio and SPI Flash to Sleep"));
   // Radio - Initialize the radio and put it to sleep to save energy
   if(!myRadio.init()) {
-    Console.println("init failed");
+     Serial.println("init failed");
   }
   myRadio.setModemConfig(RADIO_CONFIG);
   myRadio.setFrequency(RADIO_FREQUENCY);
-  uint8_t myRadioEncryptionKey[] = RADIO_ENCRYPTION_KEY;
-  myRadio.setEncryptionKey(myRadioEncryptionKey);
+  // uint8_t myRadioEncryptionKey[] = RADIO_ENCRYPTION_KEY;
+  // myRadio.setEncryptionKey(myRadioEncryptionKey);
   myRadio.setTxPower(RADIO_TX_POWER);
   myRadio.sleep();
 
@@ -97,6 +97,10 @@ void sendTempHumidity()
   // Turn the Sensor ON
   digitalWrite(DHT_PWD_PIN, HIGH);
 
+  // Give some time to initialize
+  // TODO: Investigate why it doesn't work without this
+  delay(2500);
+
   // Read temperature as Celsius * 100 to remove any decimals
   // False, True means we don't want Fahrenheit and we want to force the reading.
   int16_t t = dht.readTemperature(false, true) * 100;
@@ -107,17 +111,10 @@ void sendTempHumidity()
   //Turn the Sensor OFF
   digitalWrite(DHT_PWD_PIN, LOW);
 
-  /*
-  // For Debbuging only
-  Serial.println(t);
-  Serial.println(h);
-  delay(10);
-  */
-
   // Prepare Temperature Message and send
   myMsg.cmd = 0x03; // Return Data
   myMsg.idx = 0x05; // HID and Sensors
-  myMsg.sdx = 0x0a; // Temperature
+  myMsg.sdx = 0x0a; // Identify Temperature Message
   myMsg.data[0] = 0x01; // Operation Temp in Celcius * 100
   myMsg.data[1] = 0x01; // Sensor ID - we only have 1 in this case
   myMsg.data[2] = t >> 8;
@@ -128,7 +125,7 @@ void sendTempHumidity()
   // Now change message details with the Humidity details and send it
   myMsg.cmd = 0x03; // Return Data
   myMsg.idx = 0x05; // HID and Sensors
-  myMsg.sdx = 0x0b; // Humidity
+  myMsg.sdx = 0x0b; // Identify Humidity Message
   myMsg.data[0] = 0x01; // Operation Humidity in % * 100
   myMsg.data[1] = 0x01; // Sensor ID - we only have 1 in this case
   myMsg.data[2] = h >> 8;
@@ -158,6 +155,7 @@ void sendTestVoltage(uint8_t supply)
   // Fill the message details and send it
   myMsg.cmd = 0x03; // Return Data
   myMsg.idx = 0x06; // Node Info
+  myMsg.sdx = 0x01; // Identify Voltage Message
   myMsg.data[0] = 0x01; // Operation Last Reading
   myMsg.data[1] = 0x01; // Battery/Supply Index, if multiple supplies
   myMsg.data[2] = voltage >> 8;
@@ -179,9 +177,30 @@ void sendMessage()
   // Encode Message and get the full length
   myMsg.getSerializedMessage(radioBuf, &radioBufLen);
 
+  // For Debugging Only
+  printRadioMessageInformation(myMsg);
+
   // Send it
   myRadio.send(radioBuf, radioBufLen);
   myRadio.waitPacketSent(100);
   myRadio.sleep();
 
+}
+
+void printRadioMessageInformation(T2Message message) {
+  Serial.print("Sending ");
+  switch(message.sdx) {
+    case 0x01:
+      Serial.print("Battery Voltage: ");
+      break;
+    case 0x0a:
+      Serial.print("Temperature: ");
+      break;
+    case 0x0b:
+      Serial.print("Humidity: ");
+  }
+  // Concat uint8 message values into uint16 data
+  uint16_t data = message.data[2] << 8;
+  data |= message.data[3];
+  Serial.println(data);
 }
